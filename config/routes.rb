@@ -3,6 +3,17 @@ Rails.application.routes.draw do
   resource :session, only: %i[new create destroy]
   get "login", to: "sessions#new", as: :login
   delete "logout", to: "sessions#destroy", as: :logout
+  resource :setup, only: %i[show update] do
+    post :complete
+  end
+  resources :inquiries, only: %i[index show update] do
+    post :knowledge_draft, on: :member
+  end
+  resources :knowledge, only: %i[index create], controller: "knowledge" do
+    post :approve, on: :member
+    post :merge, on: :member
+    post :postpone, on: :member
+  end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

@@ -1,0 +1,28 @@
+<% content_for :title, "問い合わせ | #{current_organization.service_name}" %>
+<nav class="text-sm text-slate-500" aria-label="現在位置">問い合わせ</nav>
+<header class="mt-3 flex flex-wrap items-end justify-between gap-4"><div><h1 class="text-2xl font-bold tracking-tight sm:text-3xl">問い合わせ</h1><p class="mt-2 text-sm text-slate-600">対応が必要なものから確認できます。</p></div><p class="text-sm text-slate-500"><strong class="text-slate-900"><%= @inquiries.size %></strong>件</p></header>
+
+<details class="mt-6 rounded-2xl border border-slate-200 bg-white shadow-sm" <%= "open" if params.values_at(:status, :assignee_id, :channel, :from).any?(&:present?) %>><summary class="cursor-pointer list-none px-5 py-4 text-sm font-semibold">絞り込み・並び替え <span class="ml-2 text-xs font-normal text-slate-500">必要なときだけ開く</span></summary><%= form_with url: inquiries_path, method: :get, class: "grid gap-4 border-t border-slate-100 px-5 py-5 sm:grid-cols-2 lg:grid-cols-5", data: { turbo: false } do |f| %>
+  <div><%= f.label :status, "状態", class: "text-xs font-medium text-slate-500" %><%= f.select :status, Inquiry::STATUSES.map { |s| [status_label(s), s] }, { include_blank: "すべて" }, class: "mt-1 w-full rounded-xl border-slate-300" %></div>
+  <div><%= f.label :assignee_id, "担当者", class: "text-xs font-medium text-slate-500" %><%= f.select :assignee_id, @assignees.map { |u| [u.name, u.id] }, { include_blank: "すべて" }, class: "mt-1 w-full rounded-xl border-slate-300" %></div>
+  <div><%= f.label :channel, "受付経路", class: "text-xs font-medium text-slate-500" %><%= f.select :channel, Inquiry::CHANNELS.map { |c| [channel_label(c), c] }, { include_blank: "すべて" }, class: "mt-1 w-full rounded-xl border-slate-300" %></div>
+  <div><%= f.label :from, "期間（開始日）", class: "text-xs font-medium text-slate-500" %><%= f.date_field :from, value: params[:from], class: "mt-1 w-full rounded-xl border-slate-300" %></div>
+  <div><%= f.label :sort, "並び替え", class: "text-xs font-medium text-slate-500" %><%= f.select :sort, [["新しい順", "new"], ["緊急度", "urgency"], ["対応必要", "action"], ["見込み順", "lead"]], { selected: params[:sort] }, class: "mt-1 w-full rounded-xl border-slate-300" %></div>
+  <div class="flex gap-2 sm:col-span-2 lg:col-span-5"><%= f.submit "適用する", class: "rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white" %><%= link_to "解除", inquiries_path, class: "rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-500 hover:bg-slate-50" %></div>
+<% end %></details>
+
+<section class="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" aria-label="問い合わせ一覧">
+  <% if @inquiries.any? %>
+    <div class="hidden grid-cols-[1.1fr_2fr_8rem_7rem_6rem_8rem_7rem] gap-4 border-b border-slate-100 bg-slate-50/70 px-5 py-3 text-xs font-medium text-slate-500 lg:grid"><span>顧客</span><span>要約</span><span>日時</span><span>状態</span><span>緊急度</span><span>担当</span><span>受付経路</span></div>
+    <% @inquiries.each do |inquiry| %><%= link_to inquiry_path(inquiry), class: "group block border-b border-slate-100 px-4 py-4 last:border-0 hover:bg-slate-50 sm:px-5" do %>
+      <div class="grid items-center gap-2 lg:grid-cols-[1.1fr_2fr_8rem_7rem_6rem_8rem_7rem] lg:gap-4">
+        <div class="min-w-0"><p class="truncate font-semibold"><%= inquiry.customer.name %></p><p class="mt-0.5 text-xs text-slate-400 lg:hidden"><%= l(inquiry.received_at, format: :short) %> · <%= channel_label(inquiry.channel) %></p></div>
+        <p class="line-clamp-2 text-sm text-slate-600 lg:line-clamp-1"><%= inquiry.summary %></p>
+        <p class="hidden text-sm text-slate-500 lg:block"><%= l(inquiry.received_at, format: :short) %></p>
+        <span><span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset <%= status_classes(inquiry.status) %>"><%= status_label(inquiry.status) %></span></span>
+        <p class="text-sm <%= inquiry.urgency.in?(%w[urgent high]) ? 'font-semibold text-red-700' : 'text-slate-500' %>"><span class="lg:hidden">緊急度：</span><%= urgency_label(inquiry.urgency) %></p>
+        <p class="hidden truncate text-sm text-slate-600 lg:block"><%= inquiry.assignee&.name || "未割当" %></p><p class="hidden text-sm text-slate-500 lg:block"><%= channel_label(inquiry.channel) %></p>
+      </div>
+    <% end %><% end %>
+  <% else %><div class="px-6 py-16 text-center"><p class="font-semibold">該当する問い合わせはありません</p><p class="mt-2 text-sm text-slate-500">絞り込みを解除すると、すべての問い合わせを確認できます。</p><%= link_to "絞り込みを解除", inquiries_path, class: "mt-5 inline-flex rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white" %></div><% end %>
+</section>

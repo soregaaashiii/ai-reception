@@ -16,4 +16,8 @@ class User < ApplicationRecord
   def read_only?
     role == "viewer"
   end
+
+  def role_label
+    { "owner" => "オーナー", "admin" => "管理者", "staff" => "担当者", "viewer" => "閲覧のみ" }.fetch(role)
+  end
 end

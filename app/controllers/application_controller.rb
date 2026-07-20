@@ -6,6 +6,7 @@ class ApplicationController < ActionController::Base
   stale_when_importmap_changes
 
   before_action :require_authentication
+  before_action :require_setup_completion
   helper_method :current_user, :current_organization
 
   private
@@ -20,5 +21,13 @@ class ApplicationController < ActionController::Base
 
   def require_authentication
     redirect_to login_path, alert: "ログインしてください。" unless current_user
+  end
+
+  def require_setup_completion
+    return unless current_user
+    return if current_organization.setup_complete?
+    return if controller_name.in?(%w[setups sessions])
+
+    redirect_to setup_path
   end
 end

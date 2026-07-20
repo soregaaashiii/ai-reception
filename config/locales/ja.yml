@@ -1,0 +1,20 @@
+ja:
+  date:
+    formats:
+      long: "%Y年%-m月%-d日"
+      short: "%Y/%m/%d"
+  time:
+    formats:
+      long: "%Y年%-m月%-d日 %H:%M"
+      short: "%m/%d %H:%M"
+      time: "%H:%M"
+  activerecord:
+    attributes:
+      organization:
+        name: 会社名
+        service_name: サービス名
+        industry: 業種
+      user:
+        name: 名前
+        email: メール
+        phone: 電話番号
